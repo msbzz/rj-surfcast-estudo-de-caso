@@ -8,7 +8,15 @@ A plataforma foi concebida como um produto digital completo que combina dados oc
 
 Este projeto foi desenvolvido através de um fluxo de **desenvolvimento assistido por IA (AI-assisted development)**, onde atuei diretamente na concepção do produto, arquitetura do sistema, definição de regras de negócio, integrações, decisões de infraestrutura e evolução contínua.
 
+
+### - aplicativo na google store
 https://play.google.com/store/apps/details?id=br.com.mbarozzi.rj_surfcast&hl=pt_BR
+
+### - videos
+https://www.youtube.com/watch?v=F50k_8TI_Rs&t=14s
+
+https://www.youtube.com/watch?v=F50k_8TI_Rs&t=14s
+
 
 ---
 
