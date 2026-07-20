@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O SurfCast é um ecossistema completo desenvolvido para entregar previsões inteligentes de surf, relatórios operacionais em tempo real, análise contextual via inteligência artificial e monetização integrada.
+O SurfCast é um ecossistema completo desenvolvido para entregar previsões inteligentes de surf, relatórios operacionais em tempo real (em formato de texto ou áudio com gravação nativa e transcrição automática por IA), análise contextual via inteligência artificial e monetização integrada.
 
 A plataforma foi concebida como um produto digital completo que combina dados oceanográficos, inteligência artificial, geolocalização e feedback operacional de surfistas em campo.
 
@@ -50,17 +50,21 @@ O SurfCast transforma dados técnicos em inteligência prática para o surf atra
 
 ```text
 Stormglass API
-       ↓
-RJ Surfcast API (Django)
-       ↓
- ┌──────────────┬──────────────┬──────────────┐
- ↓              ↓              ↓
-IA              Relatos        Ads Engine
-(Ollama/OpenAI) Operacionais   (Monetização)
-       ↓
-App Flutter
-       ↓
-Usuário Final
+       │
+       ▼
+RJ Surfcast API (Django) ───► Transcriber Service (FastAPI + Faster-Whisper)
+       │
+ ┌─────┴──────────────┬──────────────────┐
+ │                    │                  │
+ ▼                    ▼                  ▼
+IA (Ollama/OpenAI)   Relatos            Ads Engine
+                     (Texto ou Áudio)   (Monetização)
+                      ▲
+                      │
+                 App Flutter (Gravação Nativa)
+                      │
+                      ▼
+                Usuário Final
 ```
 
 ---
@@ -155,15 +159,18 @@ Camada desenhada pensando em produção e validação.
 
 ---
 
-# Sistema de Relatos Operacionais
+# Sistema de Relatos Operacionais e Transcrição por IA
 
 Um dos pontos mais fortes do produto.
 
 Usuários autorizados podem enviar:
 
-* Condições reais do mar
-* Nota técnica de impacto (-5 a +5)
-* Vídeos em tempo real
+* Condições reais do mar em formato textual.
+* **Relatos em Áudio com Gravação Nativa**: O app Flutter grava o áudio nativamente (aac/m4a), gerencia permissões e limites de gravação recebidos dinamicamente da API (ex: max 120 segundos).
+* **Transcrição Automática**: O áudio é transmitido em multipart/form-data e processado por um microsserviço independente (FastAPI) que carrega o modelo **Faster-Whisper (OpenAI)** para gerar a transcrição textual instantânea.
+* **Resiliência e Fallback**: Em caso de indisponibilidade do transcritor, o áudio é persistido com sucesso e o relato recebe uma transcrição padrão de fallback, mantendo o fluxo estável.
+* Nota técnica de impacto (-5 a +5) controlada via Slider.
+* Vídeos em tempo real.
 
 Esses relatos modificam dinamicamente as classificações das previsões.
 
@@ -250,7 +257,7 @@ Responsável por:
 
 ---
 
-## Servidor de IA
+## Servidor de IA e Transcrição
 
 InterServer VPS
 
@@ -259,6 +266,7 @@ Responsável por:
 * Execução do Ollama
 * Inferência de modelos LLM
 * Processamento de prompts
+* **Microsserviço de Transcrição (FastAPI + Faster-Whisper)**: Serviço isolado rodando em segundo plano (via Systemd) para processar e converter áudio em texto de forma ultra veloz e independente do backend principal.
 
 ---
 
@@ -278,6 +286,8 @@ Projetado para escalabilidade e redução de custos.
 
 * Correção dinâmica de previsões em tempo real
 * Roteamento híbrido de IA
+* **Isolamento de dependências de IA (Áudio para Texto)**: Desacoplamento da transcrição de áudio em um microsserviço independente (FastAPI + Faster-Whisper), eliminando pacotes pesados de IA do backend Django principal.
+* **Tratamento de permissões do Hugging Face em produção**: Correção de permissões de diretórios para o usuário de sistema `www-data` no servidor de produção, resolvendo o erro `Permission denied (os error 13)` durante o carregamento automático de modelos.
 * Controle remoto de updates do app
 * Escalabilidade de vídeos
 * Rotação persistente de anúncios
@@ -324,17 +334,21 @@ Minhas responsabilidades incluem:
 Backend:
 
 * Django
+* FastAPI (Microsserviço de Transcrição)
 * PostgreSQL
 * REST API
 
 Mobile:
 
 * Flutter
+* Record & Audioplayers (Gravação/reprodução de áudio nativa)
+* Permission Handler (Gestão de microfone e mídia)
 
 IA:
 
 * Ollama
 * OpenAI
+* Faster-Whisper (Transcrição de áudio)
 
 Infraestrutura:
 
